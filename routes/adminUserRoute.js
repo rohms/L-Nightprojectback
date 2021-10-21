@@ -18,7 +18,7 @@ adminUserRoute.get("/", (req, res) => {
 
 // To get the admin per id
 adminUserRoute.get("/:id", (req, res) => {
-    User.findOne()
+    User.findOne( {_id: req.params.id })
     .select("name email")
     .then((user) => res.json(user))
     .catch((user) => res.sendStatus(404)); 
@@ -37,7 +37,6 @@ adminUserRoute.post("/register", async (req, res) => {
         email: req.body.email,
         password: hashPassword,
     })
-        .select("name email")
         .then ((user) => res.send("Your account has been created " + user.name))
         .catch((err) => res.send(err));
 });
