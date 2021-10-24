@@ -30,7 +30,7 @@ let transporter = nodemailer.createTransport({
     auth: {
         type: "OAuth2",
         user: process.env.EMAIL,
-        pass: process.env.PASS,
+        pass:  process.env.PASS,
         clientId: process.env.OAUTH_CLIENTID,
         clientSecret: process.env.OAUTH_CLIENT_SECRET,
         refreshToken: process.env.OAUTH_REFRESH_TOKEN,
@@ -45,6 +45,9 @@ transporter.verify((err, success) => {
 
 
 app.post("/send_mail", Validator, (req, res) => {
+    // NEED TO CHECK THIS was braking the sending of email
+    // const error = validationResult(req)
+    // if (!error.isEmpty()) return res.json("Please fill in the fields").send(error);
     // if (!req.body.captcha)
     // return res.json({ success: false, msg: "Please select captcha" })
     console.log(req.body)
@@ -52,14 +55,12 @@ app.post("/send_mail", Validator, (req, res) => {
     let mailOptions = {
         from: `${req.body.mailerState.email}`,
         to: process.env.EMAIL,
-        subject: `${req.body.mailerState.subject}`,
+        subject: `From: ${req.body.mailerState.name} ${req.body.mailerState.email} Sub: ${req.body.mailerState.subject}`,
         text: `${req.body.mailerState.message}`,
         // token: string,
       };
 
-        // NEED TO CHECK THIS was braking the sending of email
-        // const error = validationResult(req)
-        // if (!error.isEmpty()) return res.json("Please fill in the fields").send(error);
+        
 
       const RECAPTCHA_SECRET_KEY = process.env.RECAPTCHA_SECRET_KEY
 
@@ -74,8 +75,6 @@ app.post("/send_mail", Validator, (req, res) => {
           },
             body: `secret=${RECAPTCHA_SECRET_KEY}&response=${humanKey}`
      })
-        
-         .then(res => res.json())
          .then(json => json.success)
          .catch(err => {
               throw new Error(`Error in Google Siteverify API. ${err.message}`)
