@@ -9,6 +9,7 @@ require("dotenv").config();
 const { body, validationResult } = require("express-validator");
 const eventsRoute = require("./routes/eventsRoute");
 const adminUserRoute = require("./routes/adminUserRoute");
+const picturesRoute = require("./routes/picturesRoute");
 
 
 // NEED TO CHECK THIS TOO
@@ -25,15 +26,19 @@ app.use(express.json())
 app.use(express.urlencoded({extended: false}))
 app.use(cors())
 
+
 let transporter = nodemailer.createTransport({
     service: "gmail",
     auth: {
         type: "OAuth2",
+        // xoauth2: xoauth2.createXOAuth2Generator({})
         user: process.env.EMAIL,
         pass:  process.env.PASS,
-        clientId: process.env.OAUTH_CLIENTID,
-        clientSecret: process.env.OAUTH_CLIENT_SECRET,
-        refreshToken: process.env.OAUTH_REFRESH_TOKEN,
+        clientId: "866105336368-gds27brhhd0u8cmnouvftq8cbtigh3kf.apps.googleusercontent.com",
+        clientSecret: "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",
+        refreshToken: "1//04hR8ewn3RzeNCgYIARAAGAQSNwF-L9IrnmVNpoZlATBXIQid9VXwQw5PzCjji4mtxgQelZO0zJ_OPIDKwwsq-d1vovJ2RyzyrrU",
+        // accessToken: process.env.ACCESS_TOKEN,
+    
     },
 });
 
@@ -83,9 +88,6 @@ app.post("/send_mail", Validator, (req, res) => {
              throw new Error(`You are not a human.`)
           }
 
-        //    console.log("Success!")
-
-      
 
         transporter.sendMail(mailOptions, (error, data) => {
         console.log(mailOptions)
@@ -106,6 +108,7 @@ app.get('/', (req, res) => res.send('Welcome to Mongo db api'))
 // Routes
 app.use("/adminusers", adminUserRoute);
 app.use("/events", eventsRoute);
+app.use("/pictures", picturesRoute);
 
 // Connecting to mongoose
 mongoose.connect(
@@ -114,15 +117,17 @@ mongoose.connect(
         dbName: process.env.DB_NAME,
         user: process.env.DB_User,
         pass: process.env.DB_Pass,
-        // userNewUrlParser: true,
     },
     () => {
         console.log("connected to MongoDB");
     }
 );
 
+
+
 db = mongoose.connection;
 db.on("error", console.error.bind(console, "MongoDB connection error"));
+
 
 app.listen(PORT, ()  => {
     console.log(`Server running on port ${PORT}`);
