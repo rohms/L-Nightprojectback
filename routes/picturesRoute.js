@@ -7,7 +7,6 @@ const Picture = require("../models/files");
 const MongoURI = process.env.MONGODB_URI
 
 
-
 const filefilter = (req, file, cb) => {
     if (file.mimetype === 'image/png' || file.mimetype === 'image/jpg' 
         || file.mimetype === 'image/jpeg'){
@@ -23,27 +22,18 @@ const storage = new GridFsStorage({
     bucketName: "pictures",
     options: { useNewUrlParser: true, useUnifiedTopology: true },
     file : (req, file) => {
-        const match = ["image/png", "image/jpeg", "image/jpg"];
+        const match = ["image/png", "image/jpeg", "image/jpg", "image/gif"];
 
         if (match.indexOf(file.mimetype) === -1) {
             const filename = `${Date.now()}"-${file.originalname}`;
             return filename;
         }
-
         return {
             bucketName: "photos",
-            filename: `${Date.now()}-${file.originalname}`,
+            filename: `${Date.now()}-${file.originalname}`.match(/\.(jpg|JPG|jpeg|JPEG|png|PNG|gif|GIF)$/)
         };
     },
 });
-
-
-const upload = multer({
-    storage:storage,
-    limits: {fileSize: 1024 * 1024 * 5},    
-    filefilter: filefilter
-});   
-
 
 
 // get all the pics
@@ -58,7 +48,11 @@ picturesRoute.get('/', (req, res)=>{
     }
 });
 
-
+const upload = multer({
+    storage,
+    limits: {fileSize: 1024 * 1024 * 5},    
+    filefilter, 
+}); 
 
 
 //upload a single pic

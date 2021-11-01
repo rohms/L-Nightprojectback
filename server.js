@@ -6,19 +6,21 @@ const nodemailer = require("nodemailer");
 const axios = require("axios");
 const cors = require("cors");
 require("dotenv").config();
-const { body, validationResult } = require("express-validator");
+const { body,  validationResult } = require("express-validator");
 const eventsRoute = require("./routes/eventsRoute");
 const adminUserRoute = require("./routes/adminUserRoute");
 const picturesRoute = require("./routes/picturesRoute");
 
 
+
 // NEED TO CHECK THIS TOO
  const Validator = [
-     body("name").isString().not().isEmpty(),
-     body("email").isEmail().not().isEmpty(),
-     body("subject").isString({min : 4, max : 50}).not().isEmpty(),
-     body("text").isString({ min: 5 }).not().isEmpty()
- ]
+     body("mailerState.name").isString().not().isEmpty().withMessage("Name is required"),
+     body("mailerState.email").isEmail().withMessage("Valid email is required"),
+     body("mailerState.subject").isString({min : 4, max : 50}).not().isEmpty().withMessage("Minimum lenght is 4 characters"),
+     body("mailerState.message").isString({ min: 5 }).not().isEmpty().withMessage("Please write your message.")
+ ];
+
 
 
 // Body parser middleware
@@ -34,8 +36,8 @@ let transporter = nodemailer.createTransport({
         // xoauth2: xoauth2.createXOAuth2Generator({})
         user: process.env.EMAIL,
         pass:  process.env.PASS,
-        clientId: "866105336368-gds27brhhd0u8cmnouvftq8cbtigh3kf.apps.googleusercontent.com",
-        clientSecret: "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",
+        clientId: process.env.OAUTH_CLIENTID,
+        clientSecret: process.env.OAUTH_CLIENT_SECRET,
         refreshToken: "1//04hR8ewn3RzeNCgYIARAAGAQSNwF-L9IrnmVNpoZlATBXIQid9VXwQw5PzCjji4mtxgQelZO0zJ_OPIDKwwsq-d1vovJ2RyzyrrU",
         // accessToken: process.env.ACCESS_TOKEN,
     
@@ -50,12 +52,12 @@ transporter.verify((err, success) => {
 
 
 app.post("/send_mail", Validator, (req, res) => {
-    // NEED TO CHECK THIS was braking the sending of email
-    // const error = validationResult(req)
-    // if (!error.isEmpty()) return res.json("Please fill in the fields").send(error);
-    // if (!req.body.captcha)
-    // return res.json({ success: false, msg: "Please select captcha" })
-    console.log(req.body)
+    const errors = validationResult(req); 
+    if(!errors.isEmpty()){
+        return res.json({
+            status: "fail",
+        });
+    }
   
     let mailOptions = {
         from: `${req.body.mailerState.email}`,
