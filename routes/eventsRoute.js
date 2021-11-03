@@ -26,15 +26,6 @@ eventsRoute.post("/", async (req, res) => {
         Event.create(req.body)
         .then((newEvent) => res.json(newEvent))
         .catch((err) => res.json(err));
-        //    THIS MAKES THE EVENT BE POSTED TWICE WHEN TRYING VIA POSTMAN
-        //     const result = await Event.create({
-        //     eventname: req.body.eventname,
-        //     start_time: req.body.start_time,
-        //     location: req.body.location,
-        //     address: req.body.address,
-        //     description: req.body.description,
-        // });
-        // res.send(result);
 })
 
 // EDIT EVENT BY ID

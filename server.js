@@ -9,19 +9,14 @@ require("dotenv").config();
 const { body,  validationResult } = require("express-validator");
 const eventsRoute = require("./routes/eventsRoute");
 const adminUserRoute = require("./routes/adminUserRoute");
-const picturesRoute = require("./routes/picturesRoute");
+const picturesRouteb = require("./routes/picturesRouteb");
 
-
-
-// NEED TO CHECK THIS TOO
  const Validator = [
      body("mailerState.name").isString().not().isEmpty().withMessage("Name is required"),
      body("mailerState.email").isEmail().withMessage("Valid email is required"),
      body("mailerState.subject").isString({min : 4, max : 50}).not().isEmpty().withMessage("Minimum lenght is 4 characters"),
      body("mailerState.message").isString({ min: 5 }).not().isEmpty().withMessage("Please write your message.")
  ];
-
-
 
 // Body parser middleware
 app.use(express.json())
@@ -110,7 +105,7 @@ app.get('/', (req, res) => res.send('Welcome to Mongo db api'))
 // Routes
 app.use("/adminusers", adminUserRoute);
 app.use("/events", eventsRoute);
-app.use("/pictures", picturesRoute);
+app.use("/pictures", picturesRouteb);
 
 // Connecting to mongoose
 mongoose.connect(
@@ -124,7 +119,6 @@ mongoose.connect(
         console.log("connected to MongoDB");
     }
 );
-
 
 
 db = mongoose.connection;
