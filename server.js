@@ -6,6 +6,8 @@ const nodemailer = require("nodemailer");
 const axios = require("axios");
 const cors = require("cors");
 require("dotenv").config();
+const { google } = require("googleapis");
+const OAuth2 = google.auth.OAuth2;
 const { body,  validationResult } = require("express-validator");
 const eventsRoute = require("./routes/eventsRoute");
 const adminUserRoute = require("./routes/adminUserRoute");
@@ -23,19 +25,31 @@ app.use(express.json())
 app.use(express.urlencoded({extended: false}))
 app.use(cors())
 
+const oauth2Client = new OAuth2(
+    process.env.OAUTH_CLIENTID,
+    process.env.OAUTH_CLIENT_SECRET,
+    process.env.REDIRECT_URI,
+);
+
+oauth2Client.setCredentials({
+    refresh_token: process.env.OAUTH_REFRESH_TOKEN
+});
+const accessToken = oauth2Client.getAccessToken()
+
 
 let transporter = nodemailer.createTransport({
     service: "gmail",
     auth: {
         type: "OAuth2",
-        // xoauth2: xoauth2.createXOAuth2Generator({})
         user: process.env.EMAIL,
         pass:  process.env.PASS,
         clientId: process.env.OAUTH_CLIENTID,
         clientSecret: process.env.OAUTH_CLIENT_SECRET,
-        refreshToken: "1//04hR8ewn3RzeNCgYIARAAGAQSNwF-L9IrnmVNpoZlATBXIQid9VXwQw5PzCjji4mtxgQelZO0zJ_OPIDKwwsq-d1vovJ2RyzyrrU",
-        // accessToken: process.env.ACCESS_TOKEN,
-    
+        refreshToken: process.env.OAUTH_REFRESH_TOKEN,
+        accessToken: accessToken,
+        tls: {
+            rejectUnauthorized: false
+          },
     },
 });
 
@@ -98,7 +112,7 @@ app.post("/send_mail", Validator, (req, res) => {
         }
      });
  
- });
+});
 
 app.get('/', (req, res) => res.send('Welcome to Mongo db api'))
 
