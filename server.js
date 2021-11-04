@@ -6,7 +6,6 @@ const nodemailer = require("nodemailer");
 const axios = require("axios");
 const cors = require("cors");
 require("dotenv").config();
-const { OAuth2Client } = require ('google-auth-library');
 const { google } = require("googleapis");
 const OAuth2 = google.auth.OAuth2;
 const { body,  validationResult } = require("express-validator");
@@ -44,10 +43,10 @@ let transporter = nodemailer.createTransport({
         type: "OAuth2",
         user: process.env.EMAIL,
         pass:  process.env.PASS,
-        accessToken: accessToken,
         clientId: process.env.OAUTH_CLIENTID,
         clientSecret: process.env.OAUTH_CLIENT_SECRET,
         refreshToken: process.env.OAUTH_REFRESH_TOKEN,
+        accessToken: accessToken,
         tls: {
             rejectUnauthorized: false
           },
@@ -113,7 +112,7 @@ app.post("/send_mail", Validator, (req, res) => {
         }
      });
  
- });
+});
 
 app.get('/', (req, res) => res.send('Welcome to Mongo db api'))
 
