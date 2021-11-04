@@ -20,6 +20,8 @@
     "express": "^4.17.1",
     "express-router": "^0.0.1",
     "express-validator": "^6.13.0",
+    "google-auth-library": "^7.10.2",
+    "googleapis": "^89.0.0",
     "isomorphic-fetch": "^3.0.0",
     "jsonwebtoken": "^8.5.1",
     "mongodb": "^4.1.3",
