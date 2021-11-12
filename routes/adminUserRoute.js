@@ -24,22 +24,22 @@ adminUserRoute.get("/:id", (req, res) => {
     .catch((user) => res.sendStatus(404)); 
 });
 
-// To create an admin user, will be blocked for the moment
-// adminUserRoute.post("/register", async (req, res) => {
-//     const checkEmail = await User.findOne({ email: req.body.email });
+// To create an admin user
+adminUserRoute.post("/register", async (req, res) => {
+    const checkEmail = await User.findOne({ email: req.body.email });
 
-//     if (checkEmail) return res.status(400).send("User exists already");
-//     const salt = await bcrypt.genSalt(10);
-//     const hashPassword = await bcrypt.hash(req.body.password, salt);
+    if (checkEmail) return res.status(400).send("User exists already");
+    const salt = await bcrypt.genSalt(10);
+    const hashPassword = await bcrypt.hash(req.body.password, salt);
 
-//     const user = new User({
-//         name: req.body.name,
-//         email: req.body.email,
-//         password: hashPassword
-//     })
-//     user.save()
-//     res.send({ user })
-// });
+    const user = new User({
+        name: req.body.name,
+        email: req.body.email,
+        password: hashPassword
+    })
+    user.save()
+    res.send({ user })
+});
 
 // check for login
 adminUserRoute.post("/login", async (req, res) => {
