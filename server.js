@@ -80,7 +80,7 @@ app.post("/send_mail", Validator, (req, res) => {
 
       const RECAPTCHA_SECRET_KEY = process.env.RECAPTCHA_SECRET_KEY
 
-      const humanKey = "03AGdBq27VleyqEt3sc0YZ0MtqzLOj3ycqqQf0J7nM5zWFBxwmqIWgs2jsuTgrhcQ-O40TrNo9qp6ZAofnkCLa1Q1PE_1GGWYVFO0AC6_OGfrIoOL1BTPTqnjY8bpzHfVpkPoRh0xxVoFaytLCUnMKPRG_Dh6Y6CflyEDKrRrxwHMF2oK3pUNoi3UMiTxG1TCcjNP-NUUiu0UWmO4H8BtL7ytOZ-mItl4qmFlJDqWIFbLOAwtNkJdIfpQmIFIFSGIcIwYfPn3U0GZ_rFiXDbyw0ptR0RYg7XD4g7TLI2RZBsfJIdCjdBNGLof9amhRhXTxqXbyHsDoxKUQXrz67x2vknRPommiulSmaV8QzhjDKuwJ1rH0j236dUNiIPWZbCmAGTbboT_SjvjAsqIoSen62zV3Zax_LI61W9AxL6KERLfXahfytvkKKT-yhNTKgJwkcuWJCcKOYHEB"
+      const humanKey = process.env.RECAPTCHA_HUMAN_KEY
 
       // validate human
           const isHuman = axios (`https://www.google.com/recaptcha/api/siteverify`, {
