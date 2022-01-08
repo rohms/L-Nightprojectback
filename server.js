@@ -8,113 +8,118 @@ const cors = require("cors");
 require("dotenv").config();
 const { google } = require("googleapis");
 const OAuth2 = google.auth.OAuth2;
-const { body,  validationResult } = require("express-validator");
+const { body, validationResult } = require("express-validator");
 const eventsRoute = require("./routes/eventsRoute");
 const adminUserRoute = require("./routes/adminUserRoute");
 const picturesRouteb = require("./routes/picturesRouteb");
 
- const Validator = [
-     body("mailerState.name").isString().not().isEmpty().withMessage("Name is required"),
-     body("mailerState.email").isEmail().withMessage("Valid email is required"),
-     body("mailerState.subject").isString({min : 4, max : 50}).not().isEmpty().withMessage("Minimum lenght is 4 characters"),
-     body("mailerState.message").isString({ min: 5 }).not().isEmpty().withMessage("Please write your message.")
- ];
+const Validator = [
+  body("mailerState.name")
+    .isString()
+    .not()
+    .isEmpty()
+    .withMessage("Name is required"),
+  body("mailerState.email").isEmail().withMessage("Valid email is required"),
+  body("mailerState.subject")
+    .isString({ min: 4, max: 50 })
+    .not()
+    .isEmpty()
+    .withMessage("Minimum lenght is 4 characters"),
+  body("mailerState.message")
+    .isString({ min: 5 })
+    .not()
+    .isEmpty()
+    .withMessage("Please write your message."),
+];
 
 // Body parser middleware
-app.use(express.json())
-app.use(express.urlencoded({extended: false}))
-app.use(cors())
+app.use(express.json());
+app.use(express.urlencoded({ extended: false }));
+app.use(cors());
 
 const oauth2Client = new OAuth2(
-    process.env.OAUTH_CLIENTID,
-    process.env.OAUTH_CLIENT_SECRET,
-    process.env.REDIRECT_URI,
+  process.env.OAUTH_CLIENTID,
+  process.env.OAUTH_CLIENT_SECRET,
+  process.env.REDIRECT_URI
 );
 
 oauth2Client.setCredentials({
-    refresh_token: process.env.OAUTH_REFRESH_TOKEN
+  refresh_token: process.env.OAUTH_REFRESH_TOKEN,
 });
-const accessToken = oauth2Client.getAccessToken()
-
+let accessToken = oauth2Client.getAccessToken();
 
 let transporter = nodemailer.createTransport({
-    service: "gmail",
-    auth: {
-        type: "OAuth2",
-        user: process.env.EMAIL,
-        pass:  process.env.PASS,
-        clientId: process.env.OAUTH_CLIENTID,
-        clientSecret: process.env.OAUTH_CLIENT_SECRET,
-        refreshToken: process.env.OAUTH_REFRESH_TOKEN,
-        accessToken: accessToken,
-        tls: {
-            rejectUnauthorized: false
-          },
+  service: "gmail",
+  auth: {
+    type: "OAuth2",
+    user: process.env.EMAIL,
+    pass: process.env.PASS,
+    clientId: process.env.OAUTH_CLIENTID,
+    clientSecret: process.env.OAUTH_CLIENT_SECRET,
+    refreshToken: process.env.OAUTH_REFRESH_TOKEN,
+    accessToken: accessToken,
+    tls: {
+      rejectUnauthorized: false,
     },
+  },
 });
 
 transporter.verify((err, success) => {
-    err
+  err
     ? console.log(err)
-    : console.log(`=== Server is ready to take messages: ${success} ===`)
+    : console.log(`=== Server is ready to take messages: ${success} ===`);
 });
-
 
 app.post("/send_mail", Validator, (req, res) => {
-    const errors = validationResult(req); 
-    if(!errors.isEmpty()){
-        return res.json({
-            status: "fail",
-        });
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.json({
+      status: "fail",
+    });
+  }
+
+  let mailOptions = {
+    from: `${req.body.mailerState.email}`,
+    to: process.env.EMAIL,
+    subject: `From: ${req.body.mailerState.name} ${req.body.mailerState.email} Sub: ${req.body.mailerState.subject}`,
+    text: `${req.body.mailerState.message}`,
+  };
+
+  const RECAPTCHA_SECRET_KEY = process.env.RECAPTCHA_SECRET_KEY;
+
+  const humanKey = process.env.RECAPTCHA_HUMAN_KEY;
+
+  // validate human
+  const isHuman = axios(`https://www.google.com/recaptcha/api/siteverify`, {
+    method: "post",
+    headers: {
+      Accept: "application/json",
+      "Content-Type": "application/x-www-form-urlencoded; charset=utf-8",
+    },
+    body: `secret=${RECAPTCHA_SECRET_KEY}&response=${humanKey}`,
+  })
+    .then((json) => json.success)
+    .catch((err) => {
+      throw new Error(`Error in Google Siteverify API. ${err.message}`);
+    });
+  if (humanKey === null || !isHuman) {
+    throw new Error(`You are not a human.`);
+  }
+
+  transporter.sendMail(mailOptions, (error, data) => {
+    console.log(mailOptions);
+    if (error) {
+      res.json({
+        status: "fail",
+      });
+    } else {
+      console.log("Email sent successfully");
+      res.json({ status: "success" });
     }
-  
-    let mailOptions = {
-        from: `${req.body.mailerState.email}`,
-        to: process.env.EMAIL,
-        subject: `From: ${req.body.mailerState.name} ${req.body.mailerState.email} Sub: ${req.body.mailerState.subject}`,
-        text: `${req.body.mailerState.message}`,
-        // token: string,
-      };
-
-        
-
-      const RECAPTCHA_SECRET_KEY = process.env.RECAPTCHA_SECRET_KEY
-
-      const humanKey = process.env.RECAPTCHA_HUMAN_KEY
-
-      // validate human
-          const isHuman = axios (`https://www.google.com/recaptcha/api/siteverify`, {
-          method: "post",
-          headers: {
-          "Accept": "application/json",
-          "Content-Type": "application/x-www-form-urlencoded; charset=utf-8"
-          },
-            body: `secret=${RECAPTCHA_SECRET_KEY}&response=${humanKey}`
-     })
-         .then(json => json.success)
-         .catch(err => {
-              throw new Error(`Error in Google Siteverify API. ${err.message}`)
-         })
-          if (humanKey === null || !isHuman) {
-             throw new Error(`You are not a human.`)
-          }
-
-
-        transporter.sendMail(mailOptions, (error, data) => {
-        console.log(mailOptions)
-        if(error){
-            res.json({
-                status: "fail",
-            });
-        } else{
-            console.log("Email sent successfully");
-            res.json({ status: "success" });
-        }
-     });
- 
+  });
 });
 
-app.get('/', (req, res) => res.send('Welcome to Mongo db api'))
+app.get("/", (req, res) => res.send("Welcome to Mongo db api"));
 
 // Routes
 app.use("/adminusers", adminUserRoute);
@@ -123,22 +128,20 @@ app.use("/pictures", picturesRouteb);
 
 // Connecting to mongoose
 mongoose.connect(
-    process.env.MONGODB_URI,
-    {
-        dbName: process.env.DB_NAME,
-        user: process.env.DB_User,
-        pass: process.env.DB_Pass,
-    },
-    () => {
-        console.log("connected to MongoDB");
-    }
+  process.env.MONGODB_URI,
+  {
+    dbName: process.env.DB_NAME,
+    user: process.env.DB_User,
+    pass: process.env.DB_Pass,
+  },
+  () => {
+    console.log("connected to MongoDB");
+  }
 );
-
 
 db = mongoose.connection;
 db.on("error", console.error.bind(console, "MongoDB connection error"));
 
-
-app.listen(PORT, ()  => {
-    console.log(`Server running on port ${PORT}`);
-})
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
