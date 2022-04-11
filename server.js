@@ -58,9 +58,10 @@ let transporter = nodemailer.createTransport({
     clientSecret: process.env.OAUTH_CLIENT_SECRET,
     refreshToken: process.env.OAUTH_REFRESH_TOKEN,
     accessToken: accessToken,
-    tls: {
-      rejectUnauthorized: false,
-    },
+    expires: new Date().getTime(),
+  },
+  tls: {
+    rejectUnauthorized: false,
   },
 });
 
