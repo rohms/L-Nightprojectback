@@ -1,7 +1,7 @@
 const express = require("express");
 const adminUserRoute = express.Router();
 adminUserRoute.use(express.json());
-adminUserRoute.use(express.urlencoded());
+adminUserRoute.use(express.urlencoded({ extended: true }));
 const User = require("../models/adminUser.js");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
