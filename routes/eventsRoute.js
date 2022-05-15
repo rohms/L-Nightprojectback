@@ -1,7 +1,7 @@
 const express = require("express");
 const eventsRoute = express.Router();
 eventsRoute.use(express.json());
-eventsRoute.use(express.urlencoded());
+eventsRoute.use(express.urlencoded({ extended: true }));
 const Event = require("../models/event");
 require("dotenv").config();
 

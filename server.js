@@ -2,16 +2,16 @@ const express = require("express");
 const app = express();
 const mongoose = require("mongoose");
 const PORT = process.env.PORT || 4000;
-const nodemailer = require("nodemailer");
 const axios = require("axios");
 const cors = require("cors");
 require("dotenv").config();
-const { google } = require("googleapis");
-const OAuth2 = google.auth.OAuth2;
 const { body, validationResult } = require("express-validator");
 const eventsRoute = require("./routes/eventsRoute");
 const adminUserRoute = require("./routes/adminUserRoute");
 const picturesRouteb = require("./routes/picturesRouteb");
+const nodemailer = require("nodemailer");
+const { google } = require("googleapis");
+const OAuth2 = google.auth.OAuth2;
 
 const Validator = [
   body("mailerState.name")
@@ -37,28 +37,31 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cors());
 
-const oauth2Client = new OAuth2(
+const OAuth2Client = new OAuth2(
   process.env.OAUTH_CLIENTID,
   process.env.OAUTH_CLIENT_SECRET,
-  process.env.REDIRECT_URI
+  process.env.EMAIL.REDIRECT_URI
 );
 
-oauth2Client.setCredentials({
+OAuth2Client.setCredentials({
   refresh_token: process.env.OAUTH_REFRESH_TOKEN,
 });
-let accessToken = oauth2Client.getAccessToken();
 
-let transporter = nodemailer.createTransport({
-  service: "gmail",
+let accessToken = OAuth2Client.getAccessToken();
+
+const transporter = nodemailer.createTransport({
+  host: "smtp.gmail.com",
+  port: 465,
+  secure: true,
+  // service: "gmail",
   auth: {
     type: "OAuth2",
     user: process.env.EMAIL,
-    pass: process.env.PASS,
+    // pass: process.env.PASS,
     clientId: process.env.OAUTH_CLIENTID,
+    accessToken,
     clientSecret: process.env.OAUTH_CLIENT_SECRET,
     refreshToken: process.env.OAUTH_REFRESH_TOKEN,
-    accessToken: accessToken,
-    expires: new Date().getTime(),
   },
   tls: {
     rejectUnauthorized: false,
@@ -87,7 +90,6 @@ app.post("/send_mail", Validator, (req, res) => {
   };
 
   const RECAPTCHA_SECRET_KEY = process.env.RECAPTCHA_SECRET_KEY;
-
   const humanKey = process.env.RECAPTCHA_HUMAN_KEY;
 
   // validate human
